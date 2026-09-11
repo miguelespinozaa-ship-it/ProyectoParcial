@@ -52,13 +52,15 @@ orders-service/
 | MV Base de Datos | Corre PostgreSQL + Adminer | 22, 8080, 8004 |
 | MV Pruebas | (Por usar) Sera la replica del micro para balanceador | 22, 8000 |
  
-## Configuracion actual
- 
-- IP privada de MV Base de Datos: `172.31.94.208` (hardcoded en `main.js`)
-- Puerto Postgres expuesto: `8004`
-- Usuario BD: `root`
-- Contraseña BD: `utec`
-- Nombre BD: `bd_api_orders`
+Configuracion actual
+- IP PRIVADA de MV Base de Datos: 172.31.94.208 (usada por main.js, tráfico interno VPC)
+- IP PUBLICA (Elastic IP) de MV Base de Datos: 34.206.96.68 (usada por compañeros de otro Learner Lab)
+- IP PUBLICA (Elastic IP) de MV Desarrollo: 98.84.250.185 (donde corre la API)
+- Puerto Postgres expuesto: 8004
+- Puerto Adminer: 8080
+- Usuario BD: root
+- Contraseña BD: utec
+- Nombre BD: bd_api_orders
 ## Comandos Docker
  
 ### En MV Base de Datos (una sola vez)
