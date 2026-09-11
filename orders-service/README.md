@@ -18,7 +18,7 @@ orders-service/
 ├── orders-api.yaml                        # Documentacion OpenAPI (subir al repo catalog)
 ├── orders.postman_collection.json         # Coleccion de Postman
 ├── plantilla_crear_mv_bd_orders.yaml      # CFN: crea MV Bases de Datos con puertos 8004-8006
-├── plantilla_crear_mv_app.yaml            # CFN: crea MV Pruebas 1/2 con puerto 8000
+├── plantilla_crear_mv_app.yaml            # CFN: crea MV Pruebas con puerto 8000
 └── README.md
 ```
  
@@ -44,16 +44,24 @@ orders-service/
 - DB: `bd_api_orders`
 - Puerto expuesto en MV BD: `8004`
 - Total de registros insertados: **20,003** (3 de ejemplo + 20,000 fake)
+## Maquinas virtuales usadas
+ 
+| MV | Rol | Puertos abiertos |
+|----|-----|-----|
+| MV Desarrollo | Donde codeo y corre el contenedor de la API | 22, 8000 |
+| MV Base de Datos | Corre PostgreSQL + Adminer | 22, 8080, 8004 |
+| MV Pruebas | (Por usar) Sera la replica del micro para balanceador | 22, 8000 |
+ 
 ## Configuracion actual
  
-- IP privada de MV Bases de Datos: `172.31.94.208` (hardcoded en `main.js`)
+- IP privada de MV Base de Datos: `172.31.94.208` (hardcoded en `main.js`)
 - Puerto Postgres expuesto: `8004`
 - Usuario BD: `root`
 - Contraseña BD: `utec`
 - Nombre BD: `bd_api_orders`
 ## Comandos Docker
  
-### En MV Bases de Datos (una sola vez)
+### En MV Base de Datos (una sola vez)
  
 ```bash
 docker network create red_bd
@@ -69,7 +77,7 @@ docker run -d --rm --name pg_orders_c \
 docker run -d --rm --name adminer_c --network red_bd -p 8080:8080 adminer
 ```
  
-### En MV Desarrollo / MV Pruebas 1 / MV Pruebas 2
+### En MV Desarrollo
  
 ```bash
 cd /home/ubuntu/contenedores
@@ -88,7 +96,8 @@ Desde MV Desarrollo, con el contenedor corriendo:
 docker exec orders-service_c node seed.js
 ```
  
-
+Esperar 1-2 minutos hasta ver `insertados 20000/20000`.
+ 
 ## API en produccion
  
 - Base URL: `http://98.84.250.185:8000`
@@ -96,24 +105,37 @@ docker exec orders-service_c node seed.js
   - `http://98.84.250.185:8000/` -> Health check
   - `http://98.84.250.185:8000/orders` -> Ultimos 100 pedidos
   - `http://98.84.250.185:8000/orders/1` -> Detalle del pedido 1
-## Arquitectura
+  - 
+## Arquitectura actual (avance del 50%)
  
 ```
 [Cliente / Navegador]
         |
-        v HTTPS (via API Gateway proximamente)
-[API Gateway]
+        v HTTP publico
+[MV Desarrollo: orders-service_c :8000]
         |
-        v HTTP interno
+        v TCP privado (puerto 8004)
+[MV Base de Datos: pg_orders_c :5432 (expuesto en 8004)]
+        + Adminer en :8080
+        + red_bd (red docker compartida)
+```
+ 
+## Arquitectura final 
+ 
+```
+[Cliente / Navegador]
+        |
+        v HTTPS
+[AWS API Gateway]
+        |
+        v HTTP privado (VPC Link)
 [ALB - Application Load Balancer]
         |
         v round-robin
-[MV Pruebas 1: orders-service_c :8000]   [MV Pruebas 2: orders-service_c :8000]
+[MV Desarrollo: orders-service_c :8000]  [MV Pruebas: orders-service_c :8000]
         |
-        v TCP (privado, puerto 8004)
-[MV Bases de Datos: pg_orders_c :5432 (expuesto 8004)]
-        + Adminer en :8080
-        + red_bd (red docker compartida)
+        v TCP privado (puerto 8004)
+[MV Base de Datos: pg_orders_c :5432]
 ```
  
 ## Estado de despliegue
@@ -122,10 +144,9 @@ docker exec orders-service_c node seed.js
 - [x] Docker corriendo en MV Desarrollo
 - [x] PostgreSQL con 20,003 registros
 - [x] API responde desde IP publica
-- [ ] Replicado en MV Pruebas 2
+- [ ] Replicado en MV Pruebas
 - [ ] Application Load Balancer configurado
 - [ ] API Gateway con HTTPS
 - [ ] Documentacion Swagger en repo `catalog` compartido
 - [ ] Diagrama E/R exportado
-
  
