@@ -57,7 +57,3 @@ docker build -t orders-service .
 docker run -d --rm --name orders-service_c -p 8000:8000 orders-service
 docker logs orders-service_c
 ```
-
-## Antes de correr
-
-Reemplazar en `main.js` la constante `host_name` con la IP privada real de la MV Bases de Datos.
