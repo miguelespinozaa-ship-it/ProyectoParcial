@@ -1,11 +1,13 @@
 # orders-service
-
+ 
 Microservicio de Pedidos - Proyecto Parcial CS2032 Cloud Computing UTEC 2026-2
-
+ 
+**Stack:** Node.js 20 + Express + PostgreSQL 16 + Docker
+ 
 ---
-
+ 
 ## Estructura
-
+ 
 ```
 orders-service/
 ├── main.js                                # API REST completo (todo en un archivo, estilo profe)
@@ -19,9 +21,9 @@ orders-service/
 ├── plantilla_crear_mv_app.yaml            # CFN: crea MV Pruebas 1/2 con puerto 8000
 └── README.md
 ```
-
+ 
 ## Endpoints
-
+ 
 | Metodo | Path | Descripcion |
 |--------|------|-------------|
 | GET | `/` | Echo test para health check del ALB |
@@ -32,28 +34,98 @@ orders-service/
 | POST | `/orders` | Crea pedido (consume micro de Restaurantes) |
 | PUT | `/orders/:id` | Cambia estado del pedido |
 | DELETE | `/orders/:id` | Elimina pedido |
-
+ 
 ## Base de datos (PostgreSQL 16)
-
+ 
 **2 tablas relacionadas** (`orders` <- 1:N -> `order_items`)
-
-Password: `utec`. Usuario: `root`. DB: `bd_api_orders`. Puerto expuesto en MV BD: `8004`.
-
+ 
+- Password: `utec`
+- Usuario: `root`
+- DB: `bd_api_orders`
+- Puerto expuesto en MV BD: `8004`
+- Total de registros insertados: **20,003** (3 de ejemplo + 20,000 fake)
+## Configuracion actual
+ 
+- IP privada de MV Bases de Datos: `172.31.94.208` (hardcoded en `main.js`)
+- Puerto Postgres expuesto: `8004`
+- Usuario BD: `root`
+- Contraseña BD: `utec`
+- Nombre BD: `bd_api_orders`
 ## Comandos Docker
-
+ 
+### En MV Bases de Datos (una sola vez, coordinado con el grupo)
+ 
 ```bash
-# En MV Bases de Datos (una sola vez):
 docker network create red_bd
 docker volume create pg_orders_data
+ 
 docker run -d --rm --name pg_orders_c \
   --network red_bd \
   -e POSTGRES_USER=root -e POSTGRES_PASSWORD=utec -e POSTGRES_DB=bd_api_orders \
   -p 8004:5432 \
   -v pg_orders_data:/var/lib/postgresql/data \
   postgres:16
-
-# En MV Desarrollo / MV Pruebas 1 / MV Pruebas 2:
+ 
+docker run -d --rm --name adminer_c --network red_bd -p 8080:8080 adminer
+```
+ 
+### En MV Desarrollo / MV Pruebas 1 / MV Pruebas 2
+ 
+```bash
+cd /home/ubuntu/contenedores
+git clone https://github.com/miguelespinozaa-ship-it/ProyectoParcial.git
+cd ProyectoParcial/orders-service
 docker build -t orders-service .
 docker run -d --rm --name orders-service_c -p 8000:8000 orders-service
 docker logs orders-service_c
 ```
+ 
+## Insertar los 20,000 pedidos ficticios (una sola vez)
+ 
+Desde MV Desarrollo, con el contenedor corriendo:
+ 
+```bash
+docker exec orders-service_c node seed.js
+```
+ 
+
+## API en produccion
+ 
+- Base URL: `http://98.84.250.185:8000`
+- Ejemplos:
+  - `http://98.84.250.185:8000/` -> Health check
+  - `http://98.84.250.185:8000/orders` -> Ultimos 100 pedidos
+  - `http://98.84.250.185:8000/orders/1` -> Detalle del pedido 1
+## Arquitectura
+ 
+```
+[Cliente / Navegador]
+        |
+        v HTTPS (via API Gateway proximamente)
+[API Gateway]
+        |
+        v HTTP interno
+[ALB - Application Load Balancer]
+        |
+        v round-robin
+[MV Pruebas 1: orders-service_c :8000]   [MV Pruebas 2: orders-service_c :8000]
+        |
+        v TCP (privado, puerto 8004)
+[MV Bases de Datos: pg_orders_c :5432 (expuesto 8004)]
+        + Adminer en :8080
+        + red_bd (red docker compartida)
+```
+ 
+## Estado de despliegue
+ 
+- [x] Repo publico en GitHub
+- [x] Docker corriendo en MV Desarrollo
+- [x] PostgreSQL con 20,003 registros
+- [x] API responde desde IP publica
+- [ ] Replicado en MV Pruebas 2
+- [ ] Application Load Balancer configurado
+- [ ] API Gateway con HTTPS
+- [ ] Documentacion Swagger en repo `catalog` compartido
+- [ ] Diagrama E/R exportado
+
+ 
