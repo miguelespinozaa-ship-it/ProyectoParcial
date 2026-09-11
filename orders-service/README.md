@@ -2,10 +2,6 @@
 
 Microservicio de Pedidos - Proyecto Parcial CS2032 Cloud Computing UTEC 2026-2
 
-**Autor:** Luciano Sanchez
-**Grupo con:** Miguel Espinoza + otros
-**Stack:** Node.js + Express + PostgreSQL + Docker
-
 ---
 
 ## Estructura
