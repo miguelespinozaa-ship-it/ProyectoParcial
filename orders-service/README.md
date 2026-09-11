@@ -53,7 +53,7 @@ orders-service/
 - Nombre BD: `bd_api_orders`
 ## Comandos Docker
  
-### En MV Bases de Datos (una sola vez, coordinado con el grupo)
+### En MV Bases de Datos (una sola vez)
  
 ```bash
 docker network create red_bd
