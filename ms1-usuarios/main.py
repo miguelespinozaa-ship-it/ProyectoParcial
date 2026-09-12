@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 import jwt
 import models, schemas, database
+from typing import List
 
 app = FastAPI()
 
@@ -65,3 +66,14 @@ def login(user: schemas.UserLogin, db: Session = Depends(database.get_db)):
     
     token = jwt.encode({"sub": db_user.email}, SECRET_KEY, algorithm=ALGORITHM)
     return {"access_token": token, "token_type": "bearer"}
+
+@app.get("/usuarios", response_model=List[schemas.UserResponse])
+def get_usuarios(db: Session = Depends(database.get_db)):
+    return db.query(models.User).all()
+
+@app.get("/usuarios/{user_id}", response_model=schemas.UserResponse)
+def get_usuario_by_id(user_id: int, db: Session = Depends(database.get_db)):
+    usuario = db.query(models.User).filter(models.User.id == user_id).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    return usuario

@@ -11,3 +11,13 @@ class UserCreate(BaseModel):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+
+class UserResponse(BaseModel):
+    id: int
+    nombre: str
+    apellido: str
+    email: EmailStr
+    telefono: str
+
+    class Config:
+        from_attributes = True
