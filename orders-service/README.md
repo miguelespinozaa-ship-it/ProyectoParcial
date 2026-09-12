@@ -112,7 +112,7 @@ orders-service running on port 8000
  
 ## 🗄️ Configuración de PostgreSQL
  
-La base de datos corre en una máquina virtual separada (**MV Base de Datos**) usando la red Docker `red_bd` compartida por los 3 microservicios con BD.
+La base de datos corre en una máquina virtual separada (**MV Base de Datos**) usando la red Docker `red_bd` .
  
 ### Levantar el contenedor de PostgreSQL
  
