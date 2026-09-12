@@ -70,7 +70,7 @@ public class Restaurante {
     }
 
     public void setCategoria(String categoria) {
-        return categoria;
+        this.categoria = categoria;
     }
 
     public String getDireccion() {
