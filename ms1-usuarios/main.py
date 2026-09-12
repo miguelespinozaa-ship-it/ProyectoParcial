@@ -16,6 +16,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+def root():
+    return {"message": "MS1 Usuarios OK"}
+
 models.Base.metadata.create_all(bind=database.engine)
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
