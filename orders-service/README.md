@@ -493,7 +493,7 @@ El proyecto se despliega en dos instancias EC2 (Ubuntu 22.04):
 Debes asegurarte de que los siguientes puertos estén permitidos en las reglas de entrada (Inbound Rules) del Security Group:
  
 - **MV Desarrollo**: puerto 22 (SSH) y 8000 (API).
-- **MV Base de Datos**: puerto 22 (SSH), 8004 (PostgreSQL), 8005 (MySQL), 8006 (MongoDB) y 8080 (Adminer).
+- **MV Base de Datos**: puerto 22 (SSH), 8004 (PostgreSQL) y 8080 (Adminer).
 Después podrás acceder a la API desde:
  
 ```
