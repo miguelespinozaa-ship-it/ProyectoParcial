@@ -31,14 +31,22 @@ def register(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
         apellido=user.apellido,
         email=user.email,
         telefono=user.telefono,
-        password=hashed_password,
-        direccion=user.direccion
+        password=hashed_password
     )
     
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    return {"message": "Usuario registrado exitosamente"}
+    
+    # Guardar en la segunda tabla (Relacionada)
+    nueva_direccion = models.Direccion(
+        calle_y_numero=user.direccion,
+        user_id=new_user.id
+    )
+    db.add(nueva_direccion)
+    db.commit()
+    
+    return {"message": "Usuario y dirección registrados exitosamente"}
 
 @app.post("/login")
 def login(user: schemas.UserLogin, db: Session = Depends(database.get_db)):
