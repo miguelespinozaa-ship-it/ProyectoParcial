@@ -16,8 +16,8 @@ services:
     ports:
       - "8002:8082"
     environment:
-      - MONGODB_URI=mongodb://${DB_VM_IP}:27017/${MS2_MONGO_DB}
-      - MONGODB_DATABASE=${MS2_MONGO_DB}
+      - SPRING_DATA_MONGODB_URI=mongodb://${DB_VM_IP}:27017/${MS2_MONGO_DB}
+      - SPRING_DATA_MONGODB_DATABASE=${MS2_MONGO_DB}
     restart: unless-stopped
 
   ms3-pedidos:
