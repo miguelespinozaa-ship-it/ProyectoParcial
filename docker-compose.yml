@@ -7,8 +7,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      # Recuerda reemplazar REEMPLAZAR_IP_PRIVADA_MV_BD por la IP de tu tercera EC2
-      - DATABASE_URL=mysql+pymysql://root:utec@REEMPLAZAR_IP_PRIVADA_MV_BD:3306/db_usuarios
+      - DATABASE_URL=mysql+pymysql://${MS1_DB_USER}:${MS1_DB_PASSWORD}@${DB_VM_IP}:3306/${MS1_DB_NAME}
     restart: unless-stopped
 
   ms2-catalogo:
@@ -17,9 +16,8 @@ services:
     ports:
       - "8002:8082"
     environment:
-      # Recuerda reemplazar REEMPLAZAR_IP_PRIVADA_MV_BD por la IP de tu tercera EC2
-      - MONGODB_URI=mongodb://REEMPLAZAR_IP_PRIVADA_MV_BD:27017/cloudeats_catalogo
-      - MONGODB_DATABASE=cloudeats_catalogo
+      - MONGODB_URI=mongodb://${DB_VM_IP}:27017/${MS2_MONGO_DB}
+      - MONGODB_DATABASE=${MS2_MONGO_DB}
     restart: unless-stopped
 
   ms3-pedidos:
@@ -29,11 +27,11 @@ services:
       - "8001:8000"
     environment:
       # Conexión a base de datos externa (PostgreSQL)
-      - DB_HOST=REEMPLAZAR_IP_PRIVADA_MV_BD
+      - DB_HOST=${DB_VM_IP}
       - DB_PORT=5432
-      - DB_USER=postgres
-      - DB_PASSWORD=utec
-      - DB_NAME=bd_api_orders
+      - DB_USER=${MS3_DB_USER}
+      - DB_PASSWORD=${MS3_DB_PASSWORD}
+      - DB_NAME=${MS3_DB_NAME}
       # URL para consumir MS2 internamente
       - RESTAURANTS_URL=http://ms2-catalogo:8082/api/v1/restaurantes
     restart: unless-stopped
