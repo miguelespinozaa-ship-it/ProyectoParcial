@@ -1,0 +1,150 @@
+{
+  "info": {
+    "_postman_id": "9b35cc2c-1ef7-4b83-93bd-4f1f9cde8c01",
+    "name": "CloudEats - Microservicio 2 - Catalogo de Restaurantes",
+    "description": "Coleccion para probar el microservicio 2 de CloudEats (Spring Boot + MongoDB). Requiere el servicio en http://localhost:8082 y MongoDB activo.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "baseUrl", "value": "http://localhost:8080"},
+    {"key": "restauranteId", "value": ""},
+    {"key": "platoId", "value": ""}
+  ],
+  "item": [
+    {
+      "name": "1. Restaurantes",
+      "item": [
+        {
+          "name": "Crear restaurante",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"empresaId\": 1,\n  \"nombre\": \"La Esquina Criolla\",\n  \"descripcion\": \"Comida peruana tradicional\",\n  \"categoria\": \"Criolla\",\n  \"direccion\": \"Av. Principal 123, Lima\",\n  \"activo\": true,\n  \"platos\": [\n    {\n      \"nombre\": \"Lomo Saltado\",\n      \"descripcion\": \"Lomo de res, papas fritas y arroz\",\n      \"precio\": 24.90,\n      \"categoria\": \"Platos de fondo\",\n      \"disponible\": true\n    },\n    {\n      \"nombre\": \"Ají de Gallina\",\n      \"descripcion\": \"Pollo deshilachado en salsa de ají amarillo\",\n      \"precio\": 20.50,\n      \"categoria\": \"Platos de fondo\",\n      \"disponible\": true\n    }\n  ],\n  \"resenas\": []\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {"raw": "{{baseUrl}}/api/v1/restaurantes", "host": ["{{baseUrl}}"], "path": ["api", "v1", "restaurantes"]}
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('201/200 - restaurante creado', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                "const json = pm.response.json();",
+                "if (json.id) pm.collectionVariables.set('restauranteId', json.id);",
+                "if (json.platos && json.platos.length && json.platos[0].id) pm.collectionVariables.set('platoId', json.platos[0].id);"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Listar restaurantes",
+          "request": {
+            "method": "GET",
+            "url": {"raw": "{{baseUrl}}/api/v1/restaurantes", "host": ["{{baseUrl}}"], "path": ["api", "v1", "restaurantes"]}
+          }
+        },
+        {
+          "name": "Buscar por nombre",
+          "request": {
+            "method": "GET",
+            "url": {"raw": "{{baseUrl}}/api/v1/restaurantes?nombre=criolla", "host": ["{{baseUrl}}"], "path": ["api", "v1", "restaurantes"], "query": [{"key": "nombre", "value": "criolla"}]}
+          }
+        },
+        {
+          "name": "Buscar por categoria",
+          "request": {
+            "method": "GET",
+            "url": {"raw": "{{baseUrl}}/api/v1/restaurantes?categoria=Criolla", "host": ["{{baseUrl}}"], "path": ["api", "v1", "restaurantes"], "query": [{"key": "categoria", "value": "Criolla"}]}
+          }
+        },
+        {
+          "name": "Obtener restaurante por ID",
+          "request": {
+            "method": "GET",
+            "url": {"raw": "{{baseUrl}}/api/v1/restaurantes/{{restauranteId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "restaurantes", "{{restauranteId}}"]}
+          }
+        },
+        {
+          "name": "Obtener menu",
+          "request": {
+            "method": "GET",
+            "url": {"raw": "{{baseUrl}}/api/v1/restaurantes/{{restauranteId}}/menu", "host": ["{{baseUrl}}"], "path": ["api", "v1", "restaurantes", "{{restauranteId}}", "menu"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Platos",
+      "item": [
+        {
+          "name": "Agregar plato",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Ceviche Clásico\",\n  \"descripcion\": \"Ceviche de pescado con limón, cebolla y ají\",\n  \"precio\": 28.90,\n  \"categoria\": \"Entradas\",\n  \"disponible\": true\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {"raw": "{{baseUrl}}/api/v1/restaurantes/{{restauranteId}}/platos", "host": ["{{baseUrl}}"], "path": ["api", "v1", "restaurantes", "{{restauranteId}}", "platos"]}
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Plato agregado', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Eliminar plato",
+          "request": {
+            "method": "DELETE",
+            "url": {"raw": "{{baseUrl}}/api/v1/restaurantes/{{restauranteId}}/platos/{{platoId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "restaurantes", "{{restauranteId}}", "platos", "{{platoId}}"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Resenas",
+      "item": [
+        {
+          "name": "Agregar resena",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuarioId\": \"15\",\n  \"puntuacion\": 5,\n  \"comentario\": \"Muy buena comida y excelente atencion\"\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {"raw": "{{baseUrl}}/api/v1/restaurantes/{{restauranteId}}/resenas", "host": ["{{baseUrl}}"], "path": ["api", "v1", "restaurantes", "{{restauranteId}}", "resenas"]}
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Resena agregada', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });"
+              ]
+            }
+          }]
+        }
+      ]
+    },
+    {
+      "name": "4. Eliminacion",
+      "item": [
+        {
+          "name": "Desactivar restaurante",
+          "request": {
+            "method": "DELETE",
+            "url": {"raw": "{{baseUrl}}/api/v1/restaurantes/{{restauranteId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "restaurantes", "{{restauranteId}}"]}
+          }
+        }
+      ]
+    }
+  ]
+}
