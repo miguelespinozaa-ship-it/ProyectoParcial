@@ -9,12 +9,12 @@ app.use(express.json());
 app.use(cors({ origin: '*' }));
 
 // ===== Configuracion de conexion a base de datos =====
-// IPv4 privada de "MV Bases de Datos" (reemplazar despues de crear la MV)
-const host_name = "REEMPLAZAR_IP_PRIVADA_MV_BD";
-const port_number = 8004;
-const user_name = "root";
-const password_db = "utec";
-const database_name = "bd_api_orders";
+// IPv4 privada de "MV Bases de Datos"
+const host_name = process.env.DB_HOST || "REEMPLAZAR_IP_PRIVADA_MV_BD";
+const port_number = process.env.DB_PORT || 5432;
+const user_name = process.env.DB_USER || "postgres";
+const password_db = process.env.DB_PASSWORD || "utec";
+const database_name = process.env.DB_NAME || "bd_api_orders";
 
 const pool = new Pool({
   host: host_name,
@@ -25,8 +25,8 @@ const pool = new Pool({
   max: 10
 });
 
-// URL del micro de Restaurantes (compañero) - reemplazar con IP privada del micro
-const RESTAURANTS_URL = "http://REEMPLAZAR_IP_MICRO_RESTAURANTES:8000";
+// URL del micro de Restaurantes (compañero)
+const RESTAURANTS_URL = process.env.RESTAURANTS_URL || "http://REEMPLAZAR_IP_MICRO_RESTAURANTES:8000";
 
 // ===== Endpoints =====
 
