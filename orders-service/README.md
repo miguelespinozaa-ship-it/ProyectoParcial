@@ -1,154 +1,568 @@
-# orders-service
+
+Readme · MD
+# 🛒 Microservicio de Pedidos
  
-Microservicio de Pedidos - Proyecto Parcial CS2032 Cloud Computing UTEC 2026-2
- 
-**Stack:** Node.js 20 + Express + PostgreSQL 16 + Docker
+Microservicio backend de gestión de pedidos desarrollado con **Node.js**, **Express**, **PostgreSQL** y **Docker**. El proyecto permite crear, consultar, actualizar y eliminar pedidos de una plataforma de delivery, consumiendo el microservicio de Restaurantes para validar los platos y sus precios.
  
 ---
  
-## Estructura
+## 🛠️ Tecnologías utilizadas
+ 
+- **Node.js 20** — Runtime de JavaScript.
+- **Express** — Framework web para Node.js.
+- **PostgreSQL 16** — Base de datos relacional.
+- **node-postgres (pg)** — Driver oficial para conectarse a PostgreSQL desde Node.
+- **CORS** — Middleware para permitir peticiones desde otros orígenes.
+- **@faker-js/faker** — Generación masiva de datos ficticios.
+- **Docker** — Contenerización de la aplicación.
+- **Adminer** — Interfaz web para administrar la base de datos.
+---
+ 
+## 📁 Estructura del proyecto
  
 ```
 orders-service/
-├── main.js                                # API REST completo (todo en un archivo, estilo profe)
-├── Dockerfile                             # Imagen base node:20-slim
-├── package.json                           # express, cors, pg, faker
-├── db.txt                                 # Script SQL para Adminer
-├── seed.js                                # Insercion masiva de 20,000 pedidos
-├── orders-api.yaml                        # Documentacion OpenAPI (subir al repo catalog)
-├── orders.postman_collection.json         # Coleccion de Postman
-├── plantilla_crear_mv_bd_orders.yaml      # CFN: crea MV Bases de Datos con puertos 8004-8006
-├── plantilla_crear_mv_app.yaml            # CFN: crea MV Pruebas con puerto 8000
+├── main.js
+├── seed.js
+├── db.txt
+├── package.json
+├── Dockerfile
+├── orders-api.yaml
+├── orders.postman_collection.json
+├── plantilla_crear_mv_bd_orders.yaml
+├── plantilla_crear_mv_app.yaml
 └── README.md
 ```
  
-## Endpoints
+---
  
-| Metodo | Path | Descripcion |
-|--------|------|-------------|
-| GET | `/` | Echo test para health check del ALB |
-| GET | `/orders` | Ultimos 100 pedidos |
-| GET | `/orders/:id` | Pedido con sus items |
-| GET | `/orders/user/:userId` | Historial de un usuario |
-| GET | `/orders/restaurant/:restaurantId` | Pedidos de un restaurante |
-| POST | `/orders` | Crea pedido (consume micro de Restaurantes) |
-| PUT | `/orders/:id` | Cambia estado del pedido |
-| DELETE | `/orders/:id` | Elimina pedido |
+## 🚀 Instalación y despliegue
  
-## Base de datos (PostgreSQL 16)
+### 1. Clonar el repositorio
  
-**2 tablas relacionadas** (`orders` <- 1:N -> `order_items`)
- 
-- Password: `utec`
-- Usuario: `root`
-- DB: `bd_api_orders`
-- Puerto expuesto en MV BD: `8004`
-- Total de registros insertados: **20,003** (3 de ejemplo + 20,000 fake)
-## Maquinas virtuales usadas
- 
-| MV | Rol | Puertos abiertos |
-|----|-----|-----|
-| MV Desarrollo | Donde codeo y corre el contenedor de la API | 22, 8000 |
-| MV Base de Datos | Corre PostgreSQL + Adminer | 22, 8080, 8004 |
-| MV Pruebas | (Por usar) Sera la replica del micro para balanceador | 22, 8000 |
- 
-Configuracion actual
-- IP PRIVADA de MV Base de Datos: 172.31.94.208 (usada por main.js, tráfico interno VPC)
-- IP PUBLICA (Elastic IP) de MV Base de Datos: 34.206.96.68 (usada por compañeros de otro Learner Lab)
-- IP PUBLICA (Elastic IP) de MV Desarrollo: 98.84.250.185 (donde corre la API)
-- Puerto Postgres expuesto: 8004
-- Puerto Adminer: 8080
-- Usuario BD: root
-- Contraseña BD: utec
-- Nombre BD: bd_api_orders
-## Comandos Docker
- 
-### En MV Base de Datos (una sola vez)
- 
-```bash
-docker network create red_bd
-docker volume create pg_orders_data
- 
-docker run -d --rm --name pg_orders_c \
-  --network red_bd \
-  -e POSTGRES_USER=root -e POSTGRES_PASSWORD=utec -e POSTGRES_DB=bd_api_orders \
-  -p 8004:5432 \
-  -v pg_orders_data:/var/lib/postgresql/data \
-  postgres:16
- 
-docker run -d --rm --name adminer_c --network red_bd -p 8080:8080 adminer
 ```
- 
-### En MV Desarrollo
- 
-```bash
-cd /home/ubuntu/contenedores
 git clone https://github.com/miguelespinozaa-ship-it/ProyectoParcial.git
 cd ProyectoParcial/orders-service
+```
+ 
+### 2. Instalar dependencias
+ 
+El archivo `package.json` incluye las siguientes dependencias:
+ 
+```
+express
+cors
+pg
+@faker-js/faker
+```
+ 
+Para instalar localmente:
+ 
+```
+npm install
+```
+ 
+---
+ 
+## 🐳 Ejecución con Docker
+ 
+Una vez dentro del proyecto, ejecuta:
+ 
+```
 docker build -t orders-service .
-docker run -d --rm --name orders-service_c -p 8000:8000 orders-service
+docker run -d --restart unless-stopped --name orders-service_c -p 8000:8000 orders-service
+```
+ 
+Este comando:
+ 
+- Construye la imagen del microservicio de Pedidos con Node.js.
+- Ejecuta el contenedor en segundo plano en el puerto 8000.
+- Reinicia automáticamente el contenedor si la MV se apaga.
+### Verificar los contenedores
+ 
+```
+docker ps
+```
+ 
+Deberías encontrar el servicio `orders-service_c` en estado:
+ 
+```
+Up
+```
+ 
+También puedes revisar todos los contenedores:
+ 
+```
+docker ps -a
+```
+ 
+Y los logs del microservicio:
+ 
+```
 docker logs orders-service_c
 ```
  
-## Insertar los 20,000 pedidos ficticios (una sola vez)
+Debe mostrar el mensaje:
+ 
+```
+orders-service running on port 8000
+```
+ 
+---
+ 
+## 🗄️ Configuración de PostgreSQL
+ 
+La base de datos corre en una máquina virtual separada (**MV Base de Datos**) usando la red Docker `red_bd` compartida por los 3 microservicios con BD.
+ 
+### Levantar el contenedor de PostgreSQL
+ 
+```
+docker run -d --restart unless-stopped \
+  --name pg_orders_c \
+  --network red_bd \
+  -e POSTGRES_USER=root \
+  -e POSTGRES_PASSWORD=utec \
+  -e POSTGRES_DB=bd_api_orders \
+  -p 8004:5432 \
+  -v pg_orders_data:/var/lib/postgresql/data \
+  postgres:16
+```
+ 
+También puedes escribirlo todo en una sola línea:
+ 
+```
+docker run -d --restart unless-stopped --name pg_orders_c --network red_bd -e POSTGRES_USER=root -e POSTGRES_PASSWORD=utec -e POSTGRES_DB=bd_api_orders -p 8004:5432 -v pg_orders_data:/var/lib/postgresql/data postgres:16
+```
+ 
+### Levantar Adminer (interfaz web)
+ 
+```
+docker run -d --restart unless-stopped --name adminer_c --network red_bd -p 8080:8080 adminer
+```
+ 
+Acceso: `http://<IP-DE-TU-VM-BD>:8080`
+ 
+Credenciales para el login de Adminer:
+ 
+- **Sistema**: PostgreSQL
+- **Servidor**: `pg_orders_c`
+- **Usuario**: `root`
+- **Contraseña**: `utec`
+- **Base de datos**: `bd_api_orders`
+---
+ 
+## 📡 Endpoints de la API
+ 
+Una vez desplegada la aplicación, puedes acceder utilizando la IP pública de tu máquina virtual:
+ 
+```
+http://<IP-DE-TU-VM>:8000
+```
+ 
+Por ejemplo:
+ 
+```
+http://98.84.250.185:8000
+```
+ 
+Si ejecutas la aplicación localmente, puedes utilizar `localhost` en lugar de la IP pública.
+ 
+### 🩺 Health Check
+ 
+`GET /`
+ 
+Verifica que el microservicio está activo. Es utilizado por el balanceador de carga (ALB) para el health check.
+ 
+**URL**:
+ 
+```
+http://<IP-DE-TU-VM>:8000/
+```
+ 
+**Respuesta esperada** — HTTP 200 OK
+ 
+```
+{
+  "message": "Echo Test OK - Orders API"
+}
+```
+ 
+### 📋 Listar todos los pedidos
+ 
+`GET /orders`
+ 
+Devuelve los últimos 100 pedidos ordenados del más nuevo al más viejo.
+ 
+**URL**:
+ 
+```
+http://<IP-DE-TU-VM>:8000/orders
+```
+ 
+**Respuesta esperada** — HTTP 200 OK
+ 
+```
+{
+  "orders": [
+    {
+      "id": 20003,
+      "user_id": "u0239",
+      "restaurant_id": "r0089",
+      "subtotal": "54.55",
+      "delivery_fee": "5.00",
+      "total": "59.55",
+      "address": "360 Mill Road",
+      "status": "CREATED",
+      "created_at": "2026-09-11T05:53:24.227Z"
+    }
+  ]
+}
+```
+ 
+### 🔍 Obtener un pedido por ID
+ 
+`GET /orders/{id}`
+ 
+Devuelve el pedido con sus items relacionados.
+ 
+**URL**:
+ 
+```
+http://<IP-DE-TU-VM>:8000/orders/1
+```
+ 
+**Respuesta esperada** — HTTP 200 OK
+ 
+```
+{
+  "order": {
+    "id": 1,
+    "user_id": "u001",
+    "restaurant_id": "r001",
+    "total": "50.00",
+    "status": "DELIVERED"
+  },
+  "items": [
+    {
+      "dish_id": "d001",
+      "name": "Lomo Saltado",
+      "price": "25.00",
+      "qty": 1
+    }
+  ]
+}
+```
+ 
+### 👤 Historial de un usuario
+ 
+`GET /orders/user/{userId}`
+ 
+Devuelve todos los pedidos hechos por un usuario específico.
+ 
+**URL**:
+ 
+```
+http://<IP-DE-TU-VM>:8000/orders/user/u001
+```
+ 
+### 🍽️ Pedidos de un restaurante
+ 
+`GET /orders/restaurant/{restaurantId}`
+ 
+Devuelve los pedidos recibidos por un restaurante.
+ 
+**URL**:
+ 
+```
+http://<IP-DE-TU-VM>:8000/orders/restaurant/r001
+```
+ 
+### 🆕 Crear un pedido
+ 
+`POST /orders`
+ 
+Crea un nuevo pedido. Consume el microservicio de Restaurantes para validar cada `dish_id` y traer los precios.
+ 
+**URL**:
+ 
+```
+http://<IP-DE-TU-VM>:8000/orders
+```
+ 
+**Headers**:
+ 
+```
+Content-Type: application/json
+```
+ 
+**Body**:
+ 
+```
+{
+  "user_id": "u001",
+  "restaurant_id": "r001",
+  "address": "Av. Javier Prado 123, San Isidro",
+  "items": [
+    { "dish_id": "d001", "qty": 2 },
+    { "dish_id": "d002", "qty": 1 }
+  ]
+}
+```
+ 
+**Respuesta esperada** — HTTP 200 OK
+ 
+```
+{
+  "message": "Order created successfully",
+  "id": 20004,
+  "total": 65
+}
+```
+ 
+### 🔄 Actualizar estado del pedido
+ 
+`PUT /orders/{id}`
+ 
+Cambia el estado del pedido (CREATED → PAID → PREPARING → READY → EN_ROUTE → DELIVERED).
+ 
+**URL**:
+ 
+```
+http://<IP-DE-TU-VM>:8000/orders/1
+```
+ 
+**Body**:
+ 
+```
+{
+  "status": "DELIVERED"
+}
+```
+ 
+**Respuesta esperada** — HTTP 200 OK
+ 
+```
+{
+  "message": "Order modified successfully"
+}
+```
+ 
+### 🗑️ Eliminar un pedido
+ 
+`DELETE /orders/{id}`
+ 
+Elimina un pedido. Los items relacionados se borran automáticamente por CASCADE.
+ 
+**URL**:
+ 
+```
+http://<IP-DE-TU-VM>:8000/orders/1
+```
+ 
+**Respuesta esperada** — HTTP 200 OK
+ 
+```
+{
+  "message": "Order deleted successfully"
+}
+```
+ 
+---
+ 
+## 📚 Documentación de la API
+ 
+La documentación de la API está disponible en formato **OpenAPI 3.0** (Swagger) en el archivo `orders-api.yaml` del repositorio.
+ 
+Puedes visualizarla usando el contenedor oficial de Swagger UI:
+ 
+```
+docker run -d --restart unless-stopped -p 8080:8080 -e SWAGGER_JSON=/catalog/orders-api.yaml -v /home/ubuntu/catalog:/catalog swaggerapi/swagger-ui
+```
+ 
+Acceso desde:
+ 
+```
+http://<IP-DE-TU-VM>:8080
+```
+ 
+Desde Swagger puedes:
+ 
+- Visualizar los 8 endpoints.
+- Probar `GET /orders`.
+- Probar `POST /orders`.
+- Probar `PUT /orders/{id}`.
+- Revisar los esquemas de las peticiones.
+- Revisar las respuestas de la API.
+También se incluye una colección de Postman lista para importar: `orders.postman_collection.json`.
+ 
+---
+ 
+## 📊 Base de datos
+ 
+**2 tablas relacionadas** con Foreign Key (`orders` 1:N `order_items`).
+ 
+### Tabla `orders`
+ 
+Campo | Tipo | Descripción
+--- | --- | ---
+id | SERIAL PK | Identificador único del pedido
+user_id | VARCHAR(50) | ID del usuario que hizo el pedido
+restaurant_id | VARCHAR(50) | ID del restaurante
+subtotal | DECIMAL(10,2) | Subtotal (sin delivery fee)
+delivery_fee | DECIMAL(10,2) | Fee de entrega
+total | DECIMAL(10,2) | Total (subtotal + delivery)
+address | VARCHAR(255) | Dirección de entrega
+status | VARCHAR(20) | Estado del pedido (CREATED, PAID, etc.)
+created_at | TIMESTAMP | Fecha de creación
+ 
+### Tabla `order_items`
+ 
+Campo | Tipo | Descripción
+--- | --- | ---
+id | SERIAL PK | Identificador único del item
+order_id | INT FK | Referencia a `orders.id` (ON DELETE CASCADE)
+dish_id | VARCHAR(50) | ID del plato
+name | VARCHAR(100) | Nombre del plato (snapshot)
+price | DECIMAL(10,2) | Precio del plato (snapshot)
+qty | INT | Cantidad
+ 
+**Total de registros insertados**: 20,003 (3 iniciales + 20,000 ficticios generados con faker).
+ 
+---
+ 
+## 🔍 Comandos útiles
+ 
+### Ver contenedores activos
+ 
+```
+docker ps
+```
+ 
+### Ver todos los contenedores
+ 
+```
+docker ps -a
+```
+ 
+### Ver los logs del microservicio
+ 
+```
+docker logs orders-service_c
+```
+ 
+### Ver los logs en tiempo real
+ 
+```
+docker logs -f orders-service_c
+```
+ 
+### Insertar los 20,000 pedidos ficticios (una sola vez)
  
 Desde MV Desarrollo, con el contenedor corriendo:
  
-```bash
+```
 docker exec orders-service_c node seed.js
 ```
  
-Esperar 1-2 minutos hasta ver `insertados 20000/20000`.
+Espera 1-2 minutos hasta ver `insertados 20000/20000`.
  
-## API en produccion
- 
-- Base URL: `http://98.84.250.185:8000`
-- Ejemplos:
-  - `http://98.84.250.185:8000/` -> Health check
-  - `http://98.84.250.185:8000/orders` -> Ultimos 100 pedidos
-  - `http://98.84.250.185:8000/orders/1` -> Detalle del pedido 1
-  - 
-## Arquitectura actual (avance del 50%)
+### Detener el contenedor
  
 ```
-[Cliente / Navegador]
-        |
-        v HTTP publico
-[MV Desarrollo: orders-service_c :8000]
-        |
-        v TCP privado (puerto 8004)
-[MV Base de Datos: pg_orders_c :5432 (expuesto en 8004)]
-        + Adminer en :8080
-        + red_bd (red docker compartida)
+docker stop orders-service_c
 ```
  
-## Arquitectura final 
+### Reconstruir la imagen
  
 ```
-[Cliente / Navegador]
-        |
-        v HTTPS
-[AWS API Gateway]
-        |
-        v HTTP privado (VPC Link)
-[ALB - Application Load Balancer]
-        |
-        v round-robin
-[MV Desarrollo: orders-service_c :8000]  [MV Pruebas: orders-service_c :8000]
-        |
-        v TCP privado (puerto 8004)
-[MV Base de Datos: pg_orders_c :5432]
+docker build -t orders-service .
+docker stop orders-service_c
+docker run -d --restart unless-stopped --name orders-service_c -p 8000:8000 orders-service
 ```
  
-## Estado de despliegue
+⚠️ **Nota**: Los datos de PostgreSQL están en el volumen `pg_orders_data`, por lo que no se pierden al reiniciar el contenedor. Solo se perderían con `docker volume rm pg_orders_data`.
  
-- [x] Repo publico en GitHub
-- [x] Docker corriendo en MV Desarrollo
-- [x] PostgreSQL con 20,003 registros
-- [x] API responde desde IP publica
-- [ ] Replicado en MV Pruebas
-- [ ] Application Load Balancer configurado
-- [ ] API Gateway con HTTPS
-- [ ] Documentacion Swagger en repo `catalog` compartido
-- [ ] Diagrama E/R exportado
+---
+ 
+## 🌐 Despliegue en AWS
+ 
+El proyecto se despliega en dos instancias EC2 (Ubuntu 22.04):
+ 
+- **MV Desarrollo**: Corre el microservicio `orders-service_c` en puerto 8000. Elastic IP: `98.84.250.185`.
+- **MV Base de Datos**: Corre los contenedores de BD (`pg_orders_c` en 8004 y `adminer_c` en 8080). Elastic IP: `34.206.96.68`.
+Debes asegurarte de que los siguientes puertos estén permitidos en las reglas de entrada (Inbound Rules) del Security Group:
+ 
+- **MV Desarrollo**: puerto 22 (SSH) y 8000 (API).
+- **MV Base de Datos**: puerto 22 (SSH), 8004 (PostgreSQL), 8005 (MySQL), 8006 (MongoDB) y 8080 (Adminer).
+Después podrás acceder a la API desde:
+ 
+```
+http://98.84.250.185:8000
+```
+ 
+Y al Adminer:
+ 
+```
+http://34.206.96.68:8080
+```
+ 
+---
+ 
+## 🔐 Flujo de creación de un pedido
+ 
+El flujo principal del microservicio es:
+ 
+```
+                 ┌──────────────┐
+                 │    Cliente   │
+                 └──────┬───────┘
+                        │
+                        ▼
+                  POST /orders
+                        │
+                        ▼
+                 ┌─────────────┐
+                 │   Node.js   │
+                 └──────┬──────┘
+                        │
+                        ▼
+             ┌────────────────────┐
+             │  Micro Restaurantes │ (validar dish_id + snapshot precios)
+             └──────┬─────────────┘
+                        │
+                        ▼
+                Calcular total
+                        │
+                        ▼
+              BEGIN TRANSACTION
+                        │
+                        ▼
+                 ┌─────────────┐
+                 │ PostgreSQL  │  INSERT INTO orders
+                 │             │  INSERT INTO order_items
+                 └──────┬──────┘
+                        │
+                        ▼
+                  COMMIT / ROLLBACK
+                        │
+                        ▼
+             Devolver { id, total }
+```
+ 
+---
+ 
+## 📌 Consideraciones
+ 
+- Las direcciones IP de las máquinas virtuales son **Elastic IPs** para mantenerse fijas aunque el Learner Lab reinicie.
+- La base de datos NO está expuesta directamente a Internet — el puerto 8004 solo permite tráfico desde el Security Group de la MV Desarrollo.
+- Se usa `ON DELETE CASCADE` en la FK de `order_items` para mantener integridad referencial.
+- Las queries SQL usan **parámetros preparados** (`$1`, `$2`) para prevenir inyecciones SQL.
+- El endpoint `POST /orders` usa una **transacción SQL** (`BEGIN / COMMIT / ROLLBACK`) para garantizar atomicidad.
+- El campo `status` sigue la máquina de estados: CREATED → PAID → ACCEPTED → PREPARING → READY → PICKED_UP → EN_ROUTE → DELIVERED (o CANCELLED en cualquier momento).
+- Para producción se recomienda usar HTTPS y mover las credenciales de la BD a variables de entorno o AWS Secrets Manager.
+---
+ 
+## 👨‍💻 Autor
+ 
+**Luciano Matías Sánchez Goicochea**
  
