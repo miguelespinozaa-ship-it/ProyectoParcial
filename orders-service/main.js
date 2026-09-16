@@ -10,7 +10,7 @@ app.use(cors({ origin: '*' }));
 
 // ===== Configuracion de conexion a base de datos =====
 // IPv4 privada de "MV Bases de Datos" (reemplazar despues de crear la MV)
-const host_name = "REEMPLAZAR_IP_PRIVADA_MV_BD";
+const host_name = "172.31.94.208";
 const port_number = 8004;
 const user_name = "root";
 const password_db = "utec";
@@ -26,7 +26,7 @@ const pool = new Pool({
 });
 
 // URL del micro de Restaurantes (compañero) - reemplazar con IP privada del micro
-const RESTAURANTS_URL = "http://REEMPLAZAR_IP_MICRO_RESTAURANTES:8000";
+const RESTAURANTS_URL = "http://<IP_DEL_COMPAÑERO>:8000";
 
 // ===== Endpoints =====
 
