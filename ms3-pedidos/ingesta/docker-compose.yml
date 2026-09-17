@@ -1,0 +1,17 @@
+services:
+  ingesta-orders:
+    build: .
+    image: ingesta-orders
+    container_name: ingesta_orders_c
+    environment:
+      DB_HOST: 172.31.94.208
+      DB_PORT: 8004
+      DB_NAME: bd_api_orders
+      DB_USER: root
+      DB_PASSWORD: utec
+      S3_BUCKET: cloudeats-lake-luciano
+      S3_PREFIX: orders
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN}
+      AWS_DEFAULT_REGION: us-east-1
